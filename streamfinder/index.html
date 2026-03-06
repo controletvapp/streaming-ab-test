@@ -401,7 +401,7 @@ function SearchTab(props) {
                 </div>
                 {res.imdb&&<div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0,background:TEAL+"12",border:"1.5px solid "+TEAL+"28",borderRadius:10,padding:"8px 11px"}}><span style={{color:TEAL,fontSize:15}}>★</span><span style={{color:TEAL,fontWeight:700,fontSize:17}}>{res.imdb}</span></div>}
               </div>
-              {res.platforms&&res.platforms.some(function(p){ return sel.includes(p.id)&&p.access==="incluido"; })&&(
+              {hasSelection&&res.platforms&&res.platforms.some(function(p){ return sel.includes(p.id)&&p.access==="incluido"; })&&(
                 <div style={{display:"flex",alignItems:"center",gap:12,marginTop:14,background:TEAL+"08",border:"1.5px solid "+TEAL+"25",borderRadius:12,padding:"12px 14px"}}>
                   <span style={{fontSize:18}}>🎉</span>
                   <div><p style={{color:TEAL,fontWeight:600,fontSize:13}}>Você já tem acesso!</p><p style={{color:TEAL,opacity:.55,fontSize:11}}>Incluído em uma das suas plataformas</p></div>
@@ -414,7 +414,7 @@ function SearchTab(props) {
             var others=res.platforms?res.platforms.filter(function(p){ return !sel.includes(p.id); }):[];
             return (
               <div>
-                {mine.length>0&&<div style={{marginBottom:12}}>
+                {hasSelection&&mine.length>0&&<div style={{marginBottom:12}}>
                   <p style={{fontSize:9,color:"#bbb",textTransform:"uppercase",letterSpacing:1.5,marginBottom:8,fontWeight:600}}>📱 Nas suas plataformas</p>
                   {mine.map(function(p,i){
                     var info=accessInfo(p.access); var pI=getPlatform(p.id); var inc=p.access==="incluido";
@@ -425,9 +425,9 @@ function SearchTab(props) {
                     </div>;
                   })}
                 </div>}
-                {mine.length===0&&<div style={{textAlign:"center",padding:18,marginBottom:12,background:"#fff",borderRadius:12,border:"1.5px solid rgba(0,0,0,0.07)"}}><p style={{color:"#aaa"}}>😅 Não está em nenhuma das suas plataformas.</p></div>}
+                {hasSelection&&mine.length===0&&<div style={{textAlign:"center",padding:18,marginBottom:12,background:"#fff",borderRadius:12,border:"1.5px solid rgba(0,0,0,0.07)"}}><p style={{color:"#aaa"}}>😅 Não está em nenhuma das suas plataformas.</p></div>}
                 {others.length>0&&<div>
-                  <p style={{fontSize:9,color:"#ccc",textTransform:"uppercase",letterSpacing:1.5,marginBottom:8,fontWeight:600}}>🌐 Disponível também em</p>
+                  <p style={{fontSize:9,color:"#ccc",textTransform:"uppercase",letterSpacing:1.5,marginBottom:8,fontWeight:600}}>{hasSelection?"🌐 Disponível também em":"📺 Onde assistir"}</p>
                   {others.map(function(p,i){
                     var info=accessInfo(p.access);
                     return <div key={i} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 13px",borderRadius:12,marginBottom:6,opacity:.7,border:"1.5px solid rgba(0,0,0,0.06)",background:"#fafafa"}}>
