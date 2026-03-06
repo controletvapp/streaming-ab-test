@@ -235,7 +235,7 @@ function Onboarding(props) {
       </div>
       <div style={{background:"#fff",border:"1.5px solid rgba(0,0,0,0.07)",borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:460,boxShadow:"0 8px 32px rgba(0,0,0,0.07)",animation:"fadeUp .6s .1s ease both"}}>
         <p style={{fontSize:15,fontWeight:600,marginBottom:3}}>Quais plataformas você já assina?</p>
-        <p style={{fontSize:12,color:"#bbb",marginBottom:18}}>Montamos seu catálogo personalizado.</p>
+        <p style={{fontSize:12,color:"#ccc",marginBottom:18,fontStyle:"italic"}}>Selecione pelo menos uma que montamos seu catálogo</p>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:20}}>
           {PLATFORMS.map(function(p) {
             var on = sel.includes(p.id);
@@ -249,7 +249,10 @@ function Onboarding(props) {
           })}
         </div>
         <button onClick={function(){ props.onStart(sel); }} disabled={sel.length===0} style={{width:"100%",padding:14,border:"none",borderRadius:12,fontSize:13,fontWeight:600,fontFamily:"inherit",transition:"all .2s",cursor:sel.length?"pointer":"not-allowed",background:sel.length?"#0F0F0F":"#f0f0f0",color:sel.length?"#fff":"#bbb",boxShadow:sel.length?"0 4px 14px rgba(0,0,0,0.15)":"none"}}>
-          {sel.length ? "Ver meu catálogo →" : "Selecione pelo menos uma"}
+          {sel.length ? "Ver meu catálogo →" : "Ver meu catálogo →"}
+        </button>
+        <button onClick={function(){ props.onStart([]); }} style={{width:"100%",padding:12,border:"1.5px solid rgba(0,0,0,0.10)",borderRadius:12,fontSize:12,fontWeight:500,fontFamily:"inherit",cursor:"pointer",background:"transparent",color:"#aaa",transition:"all .2s",marginTop:8}}>
+          Não assino nenhuma — só quero explorar
         </button>
       </div>
     </div>
