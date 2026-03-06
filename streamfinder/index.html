@@ -469,11 +469,11 @@ function Modal(props) {
             {item.genre&&<span style={{fontSize:10,padding:"3px 8px",borderRadius:6,background:"rgba(0,0,0,0.05)",color:"#aaa"}}>{GENRE_LABELS[item.genre]||item.genre}</span>}
             {item.trending&&<span style={{fontSize:10,padding:"3px 8px",borderRadius:6,background:"rgba(255,100,0,0.08)",color:"#FF6B35"}}>🔥 Trending</span>}
           </div>
-          <div style={{marginTop:16,padding:"13px 14px",borderRadius:12,display:"flex",alignItems:"center",gap:11,background:pColor+"10",border:"1.5px solid "+pColor+"25"}}>
+          {item.platform_id&&<div style={{marginTop:16,padding:"13px 14px",borderRadius:12,display:"flex",alignItems:"center",gap:11,background:pColor+"10",border:"1.5px solid "+pColor+"25"}}>
             <Dot id={item.platform_id} size={29}/>
-            <div><p style={{fontSize:10,color:"#aaa"}}>Disponível em</p><p style={{fontSize:13,fontWeight:600,color:"#333"}}>{item.platform_name}</p></div>
-            <span style={{marginLeft:"auto",fontSize:10,fontWeight:700,padding:"4px 9px",borderRadius:7,background:TEAL+"15",color:TEAL}}>✓ Incluído</span>
-          </div>
+            <div><p style={{fontSize:10,color:"#aaa"}}>{platformIds.length>0?"Disponível em":"Onde assistir"}</p><p style={{fontSize:13,fontWeight:600,color:"#333"}}>{item.platform_name}</p></div>
+            {platformIds.length>0&&<span style={{marginLeft:"auto",fontSize:10,fontWeight:700,padding:"4px 9px",borderRadius:7,background:TEAL+"15",color:TEAL}}>✓ Incluído</span>}
+          </div>}
           <div style={{marginTop:16}}>
             <p style={{fontSize:10,color:"#bbb",marginBottom:7}}>Sua avaliação</p>
             <Stars value={stars[item.id]||0} onChange={function(v){ setStars(function(s){ return Object.assign({},s,{[item.id]:v}); }); }}/>
