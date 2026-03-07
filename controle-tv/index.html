@@ -2,14 +2,6 @@
 <html lang="pt-BR">
 <head>
 
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5JT3DBY0SQ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-5JT3DBY0SQ');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>controle.tv</title>
@@ -109,6 +101,56 @@ function mapItem(item, platformId) {
   };
 }
 
+// Cache de providers para evitar chamadas repetidas na mesma sessão
+var _providerCache = {};
+
+async function fetchProviders(mediaType, id) {
+  var key = mediaType + ":" + id;
+  if (_providerCache[key]) return _providerCache[key];
+  try {
+    var prov = await tmdb("/3/" + mediaType + "/" + id + "/watch/providers");
+    var br = (prov.results && prov.results.BR) ? prov.results.BR : {};
+    var seen = new Set(); var list = [];
+    function addP(arr, access) {
+      (arr || []).forEach(function(p) {
+        var known = PLATFORMS.find(function(pl) { return pl.tmdb === p.provider_id; });
+        var pid = known ? known.id : null;
+        if (pid && !seen.has(pid)) { seen.add(pid); list.push({ id: pid, access: access }); }
+      });
+    }
+    addP(br.flatrate, "incluido"); addP(br.rent, "aluguel"); addP(br.buy, "compra");
+    _providerCache[key] = list;
+    return list;
+  } catch(e) { return []; }
+}
+
+async function enrichWithProviders(items, platformIds) {
+  // Busca providers de todos os itens em paralelo
+  var enriched = await Promise.all(items.map(async function(item) {
+    var mediaType = item.type === "Serie" ? "tv" : "movie";
+    var providers = await fetchProviders(mediaType, item.id);
+    // Filtra só as plataformas que o usuário assina e que têm o conteúdo incluso
+    var matchedPlatform = null;
+    for (var i = 0; i < platformIds.length; i++) {
+      var found = providers.find(function(p) { return p.id === platformIds[i] && p.access === "incluido"; });
+      if (found) { matchedPlatform = platformIds[i]; break; }
+    }
+    // Se não achou plataforma real do usuário, tenta qualquer plataforma conhecida inclusa
+    if (!matchedPlatform) {
+      var anyIncluded = providers.find(function(p) { return p.access === "incluido"; });
+      if (anyIncluded) matchedPlatform = anyIncluded.id;
+    }
+    if (!matchedPlatform) return null; // Remove itens sem plataforma real
+    var pl = getPlatform(matchedPlatform);
+    return Object.assign({}, item, {
+      platform_id: matchedPlatform,
+      platform_name: pl ? pl.name : "",
+    });
+  }));
+  // Remove nulos (itens que não têm plataforma real)
+  return enriched.filter(function(x) { return x !== null; });
+}
+
 async function fetchByGenre(platformIds, genre, typeFilter, sortBy) {
   var providerIds = platformIds.map(function(id) {
     var p = getPlatform(id); return p ? p.tmdb : null;
@@ -129,22 +171,25 @@ async function fetchByGenre(platformIds, genre, typeFilter, sortBy) {
   var calls = [];
   if (typeFilter === "Todos" || typeFilter === "Filme") {
     calls.push(tmdb("/3/discover/movie", movieParams).then(function(d) {
-      return (d.results || []).slice(0, 12).map(function(item, i) {
-        return mapItem(Object.assign({}, item, { media_type: "movie" }), platformIds[i % platformIds.length]);
+      return (d.results || []).slice(0, 16).map(function(item) {
+        return mapItem(Object.assign({}, item, { media_type: "movie" }), platformIds[0]);
       });
     }));
   } else { calls.push(Promise.resolve([])); }
 
   if (typeFilter === "Todos" || typeFilter === "Série") {
     calls.push(tmdb("/3/discover/tv", tvParams).then(function(d) {
-      return (d.results || []).slice(0, 8).map(function(item, i) {
-        return mapItem(Object.assign({}, item, { media_type: "tv" }), platformIds[i % platformIds.length]);
+      return (d.results || []).slice(0, 12).map(function(item) {
+        return mapItem(Object.assign({}, item, { media_type: "tv" }), platformIds[0]);
       });
     }));
   } else { calls.push(Promise.resolve([])); }
 
   var results = await Promise.all(calls);
-  return results[0].concat(results[1]);
+  var allItems = results[0].concat(results[1]);
+  // Enriquece com plataformas reais via /watch/providers
+  var enriched = await enrichWithProviders(allItems, platformIds);
+  return enriched;
 }
 
 async function fetchTrending(platformIds) {
@@ -152,9 +197,11 @@ async function fetchTrending(platformIds) {
     var p = getPlatform(id); return p ? p.tmdb : null;
   }).filter(Boolean).join("|");
   var d = await tmdb("/3/discover/movie", { with_watch_providers: providerIds, watch_region: "BR", sort_by: "popularity.desc", "vote_count.gte": 50, page: 1 });
-  return (d.results || []).slice(0, 8).map(function(item, i) {
-    return mapItem(Object.assign({}, item, { media_type: "movie" }), platformIds[i % platformIds.length]);
+  var items = (d.results || []).slice(0, 12).map(function(item) {
+    return mapItem(Object.assign({}, item, { media_type: "movie" }), platformIds[0]);
   });
+  var enriched = await enrichWithProviders(items, platformIds);
+  return enriched.slice(0, 8);
 }
 
 async function searchTitle(query) {
