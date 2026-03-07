@@ -2,14 +2,6 @@
 <html lang="pt-BR">
 <head>
 
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-YZBXBK8Y43"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-YZBXBK8Y43');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StreamFinder</title>
@@ -111,6 +103,52 @@ function mapItem(item, platformId) {
   };
 }
 
+// Cache de providers para evitar chamadas repetidas na mesma sessão
+var _providerCache = {};
+
+async function fetchProviders(mediaType, id) {
+  var key = mediaType + ":" + id;
+  if (_providerCache[key]) return _providerCache[key];
+  try {
+    var prov = await tmdb("/3/" + mediaType + "/" + id + "/watch/providers");
+    var br = (prov.results && prov.results.BR) ? prov.results.BR : {};
+    var seen = new Set(); var list = [];
+    function addP(arr, access) {
+      (arr || []).forEach(function(p) {
+        var known = PLATFORMS.find(function(pl) { return pl.tmdb === p.provider_id; });
+        var pid = known ? known.id : null;
+        if (pid && !seen.has(pid)) { seen.add(pid); list.push({ id: pid, access: access }); }
+      });
+    }
+    addP(br.flatrate, "incluido"); addP(br.rent, "aluguel"); addP(br.buy, "compra");
+    _providerCache[key] = list;
+    return list;
+  } catch(e) { return []; }
+}
+
+async function enrichWithProviders(items, platformIds) {
+  var enriched = await Promise.all(items.map(async function(item) {
+    var mediaType = item.type === "Serie" ? "tv" : "movie";
+    var providers = await fetchProviders(mediaType, item.id);
+    var matchedPlatform = null;
+    for (var i = 0; i < platformIds.length; i++) {
+      var found = providers.find(function(p) { return p.id === platformIds[i] && p.access === "incluido"; });
+      if (found) { matchedPlatform = platformIds[i]; break; }
+    }
+    if (!matchedPlatform) {
+      var anyIncluded = providers.find(function(p) { return p.access === "incluido"; });
+      if (anyIncluded) matchedPlatform = anyIncluded.id;
+    }
+    if (!matchedPlatform) return null;
+    var pl = getPlatform(matchedPlatform);
+    return Object.assign({}, item, {
+      platform_id: matchedPlatform,
+      platform_name: pl ? pl.name : "",
+    });
+  }));
+  return enriched.filter(function(x) { return x !== null; });
+}
+
 async function fetchByGenre(platformIds, genre, typeFilter, sortBy) {
   var providerIds = platformIds.map(function(id) {
     var p = getPlatform(id); return p ? p.tmdb : null;
@@ -131,22 +169,24 @@ async function fetchByGenre(platformIds, genre, typeFilter, sortBy) {
   var calls = [];
   if (typeFilter === "Todos" || typeFilter === "Filme") {
     calls.push(tmdb("/3/discover/movie", movieParams).then(function(d) {
-      return (d.results || []).slice(0, 12).map(function(item, i) {
-        return mapItem(Object.assign({}, item, { media_type: "movie" }), platformIds[i % platformIds.length]);
+      return (d.results || []).slice(0, 16).map(function(item) {
+        return mapItem(Object.assign({}, item, { media_type: "movie" }), platformIds[0]);
       });
     }));
   } else { calls.push(Promise.resolve([])); }
 
   if (typeFilter === "Todos" || typeFilter === "Série") {
     calls.push(tmdb("/3/discover/tv", tvParams).then(function(d) {
-      return (d.results || []).slice(0, 8).map(function(item, i) {
-        return mapItem(Object.assign({}, item, { media_type: "tv" }), platformIds[i % platformIds.length]);
+      return (d.results || []).slice(0, 12).map(function(item) {
+        return mapItem(Object.assign({}, item, { media_type: "tv" }), platformIds[0]);
       });
     }));
   } else { calls.push(Promise.resolve([])); }
 
   var results = await Promise.all(calls);
-  return results[0].concat(results[1]);
+  var allItems = results[0].concat(results[1]);
+  var enriched = await enrichWithProviders(allItems, platformIds);
+  return enriched;
 }
 
 async function fetchTrending(platformIds) {
@@ -154,9 +194,11 @@ async function fetchTrending(platformIds) {
     var p = getPlatform(id); return p ? p.tmdb : null;
   }).filter(Boolean).join("|");
   var d = await tmdb("/3/discover/movie", { with_watch_providers: providerIds, watch_region: "BR", sort_by: "popularity.desc", "vote_count.gte": 50, page: 1 });
-  return (d.results || []).slice(0, 8).map(function(item, i) {
-    return mapItem(Object.assign({}, item, { media_type: "movie" }), platformIds[i % platformIds.length]);
+  var items = (d.results || []).slice(0, 12).map(function(item) {
+    return mapItem(Object.assign({}, item, { media_type: "movie" }), platformIds[0]);
   });
+  var enriched = await enrichWithProviders(items, platformIds);
+  return enriched.slice(0, 8);
 }
 
 async function searchTitle(query) {
@@ -367,7 +409,8 @@ function SearchTab(props) {
   var _r=useState(null); var res=_r[0]; var setRes=_r[1];
   var _l=useState(false); var loading=_l[0]; var setLoading=_l[1];
   var _e=useState(""); var err=_e[0]; var setErr=_e[1];
-  var sel=props.sel;
+  var sel=props.sel||[];
+  var hasSelection=sel.length>0;
   var knownIds=PLATFORMS.map(function(p){ return p.id; });
 
   async function doSearch(e) {
@@ -450,6 +493,7 @@ function SearchTab(props) {
 function Modal(props) {
   var item=props.item; var stars=props.stars; var setStars=props.setStars; var onClose=props.onClose; var sel=props.sel||[];
   var p=getPlatform(item.platform_id); var pColor=p?p.color:"#333";
+  var isInMyPlatforms=sel.includes(item.platform_id);
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center",backdropFilter:"blur(8px)"}}>
       <div onClick={function(e){ e.stopPropagation(); }} style={{background:"#fff",borderRadius:"20px 20px 0 0",width:"100%",maxWidth:560,maxHeight:"88vh",overflowY:"auto",position:"relative",boxShadow:"0 -20px 60px rgba(0,0,0,0.15)"}}>
@@ -471,8 +515,8 @@ function Modal(props) {
           </div>
           <div style={{marginTop:16,padding:"13px 14px",borderRadius:12,display:"flex",alignItems:"center",gap:11,background:pColor+"10",border:"1.5px solid "+pColor+"25"}}>
             <Dot id={item.platform_id} size={29}/>
-            <div><p style={{fontSize:10,color:"#aaa"}}>{sel.length>0?"Disponível em":"Onde assistir"}</p><p style={{fontSize:13,fontWeight:600,color:"#333"}}>{item.platform_name}</p></div>
-            {sel.length>0&&<span style={{marginLeft:"auto",fontSize:10,fontWeight:700,padding:"4px 9px",borderRadius:7,background:TEAL+"15",color:TEAL}}>✓ Incluído</span>}
+            <div><p style={{fontSize:10,color:"#aaa"}}>{isInMyPlatforms?"Disponível em":"Onde assistir"}</p><p style={{fontSize:13,fontWeight:600,color:"#333"}}>{item.platform_name}</p></div>
+            {isInMyPlatforms&&<span style={{marginLeft:"auto",fontSize:10,fontWeight:700,padding:"4px 9px",borderRadius:7,background:TEAL+"15",color:TEAL}}>✓ Incluído</span>}
           </div>
           <div style={{marginTop:16}}>
             <p style={{fontSize:10,color:"#bbb",marginBottom:7}}>Sua avaliação</p>
