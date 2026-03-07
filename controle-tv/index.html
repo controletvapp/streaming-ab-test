@@ -409,7 +409,8 @@ function SearchTab(props) {
   var _r=useState(null); var res=_r[0]; var setRes=_r[1];
   var _l=useState(false); var loading=_l[0]; var setLoading=_l[1];
   var _e=useState(""); var err=_e[0]; var setErr=_e[1];
-  var sel=props.sel;
+  var sel=props.sel||[];
+  var hasSelection=sel.length>0;
   var knownIds=PLATFORMS.map(function(p){ return p.id; });
 
   async function doSearch(e) {
@@ -443,7 +444,7 @@ function SearchTab(props) {
                 </div>
                 {res.imdb&&<div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0,background:RED+"15",border:"1px solid "+RED+"28",borderRadius:9,padding:"8px 11px"}}><span style={{color:RED,fontSize:15}}>★</span><span style={{color:RED,fontWeight:700,fontSize:17}}>{res.imdb}</span></div>}
               </div>
-              {res.platforms&&res.platforms.some(function(p){ return sel.includes(p.id)&&p.access==="incluido"; })&&(
+              {hasSelection&&res.platforms&&res.platforms.some(function(p){ return sel.includes(p.id)&&p.access==="incluido"; })&&(
                 <div style={{display:"flex",alignItems:"center",gap:12,marginTop:14,background:"rgba(0,230,118,0.06)",border:"1px solid rgba(0,230,118,0.18)",borderRadius:11,padding:"12px 14px"}}>
                   <span style={{fontSize:18}}>🎉</span>
                   <div><p style={{color:"#00E676",fontWeight:700,fontSize:13}}>Você já tem acesso!</p><p style={{color:"#00E676",opacity:.45,fontSize:11}}>Incluído em uma das suas plataformas</p></div>
@@ -456,7 +457,7 @@ function SearchTab(props) {
             var others=res.platforms?res.platforms.filter(function(p){ return !sel.includes(p.id); }):[];
             return (
               <div>
-                {mine.length>0&&<div style={{marginBottom:12}}>
+                {hasSelection&&mine.length>0&&<div style={{marginBottom:12}}>
                   <p style={{fontSize:9,color:"#333",textTransform:"uppercase",letterSpacing:1.5,marginBottom:8,fontWeight:700}}>📱 Nas suas plataformas</p>
                   {mine.map(function(p,i){
                     var info=accessInfo(p.access); var pI=getPlatform(p.id); var inc=p.access==="incluido";
@@ -467,9 +468,9 @@ function SearchTab(props) {
                     </div>;
                   })}
                 </div>}
-                {mine.length===0&&<div style={{textAlign:"center",padding:18,marginBottom:12,background:"rgba(255,255,255,0.02)",borderRadius:11,border:"1px solid rgba(255,255,255,0.05)"}}><p style={{color:"#555"}}>😅 Não está em nenhuma das suas plataformas.</p></div>}
+                {hasSelection&&mine.length===0&&<div style={{textAlign:"center",padding:18,marginBottom:12,background:"rgba(255,255,255,0.02)",borderRadius:11,border:"1px solid rgba(255,255,255,0.05)"}}><p style={{color:"#555"}}>😅 Não está em nenhuma das suas plataformas.</p></div>}
                 {others.length>0&&<div>
-                  <p style={{fontSize:9,color:"#2a2a2a",textTransform:"uppercase",letterSpacing:1.5,marginBottom:8,fontWeight:700}}>🌐 Disponível também em</p>
+                  <p style={{fontSize:9,color:"#2a2a2a",textTransform:"uppercase",letterSpacing:1.5,marginBottom:8,fontWeight:700}}>{hasSelection?"🌐 Disponível também em":"📺 Onde assistir"}</p>
                   {others.map(function(p,i){
                     var info=accessInfo(p.access);
                     return <div key={i} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 13px",borderRadius:11,marginBottom:6,opacity:.6,border:"1px solid rgba(255,255,255,0.05)"}}>
@@ -490,8 +491,9 @@ function SearchTab(props) {
 }
 
 function Modal(props) {
-  var item=props.item; var stars=props.stars; var setStars=props.setStars; var onClose=props.onClose;
+  var item=props.item; var stars=props.stars; var setStars=props.setStars; var onClose=props.onClose; var sel=props.sel||[];
   var p=getPlatform(item.platform_id); var pColor=p?p.color:"#333";
+  var isInMyPlatforms=sel.includes(item.platform_id);
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,zIndex:100,background:"rgba(0,0,0,0.9)",display:"flex",alignItems:"flex-end",justifyContent:"center",backdropFilter:"blur(10px)"}}>
       <div onClick={function(e){ e.stopPropagation(); }} style={{background:"#0c0c0c",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:560,maxHeight:"88vh",overflowY:"auto",position:"relative"}}>
@@ -513,8 +515,8 @@ function Modal(props) {
           </div>
           <div style={{marginTop:16,padding:"13px 14px",borderRadius:11,display:"flex",alignItems:"center",gap:11,background:pColor+"15",border:"1px solid "+pColor+"30"}}>
             <Dot id={item.platform_id} size={29}/>
-            <div><p style={{fontSize:10,color:"#333"}}>Disponível em</p><p style={{fontSize:13,fontWeight:700,color:"#ccc"}}>{item.platform_name}</p></div>
-            <span style={{marginLeft:"auto",fontSize:10,fontWeight:800,padding:"4px 9px",borderRadius:7,background:"rgba(0,230,118,0.1)",color:"#00E676"}}>✓ Incluído</span>
+            <div><p style={{fontSize:10,color:"#333"}}>{isInMyPlatforms?"Disponível em":"Onde assistir"}</p><p style={{fontSize:13,fontWeight:700,color:"#ccc"}}>{item.platform_name}</p></div>
+            {isInMyPlatforms&&<span style={{marginLeft:"auto",fontSize:10,fontWeight:800,padding:"4px 9px",borderRadius:7,background:"rgba(0,230,118,0.1)",color:"#00E676"}}>✓ Incluído</span>}
           </div>
           <div style={{marginTop:16}}>
             <p style={{fontSize:10,color:"#333",marginBottom:7}}>Sua avaliação</p>
@@ -556,7 +558,7 @@ function App() {
         {tab==="catalog"&&<CatalogTab platformIds={sel} stars={stars} setStars={setStars} onModal={setModal}/>}
         {tab==="search"&&<SearchTab sel={sel}/>}
       </div>
-      {modal&&React.createElement(Modal,{item:modal,stars:stars,setStars:setStars,onClose:function(){setModal(null);}})}
+      {modal&&React.createElement(Modal,{item:modal,stars:stars,setStars:setStars,sel:sel,onClose:function(){setModal(null);}})}
     </div>
   );
 }
