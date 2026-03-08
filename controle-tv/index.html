@@ -152,7 +152,9 @@ async function enrichWithProviders(items, platformIds) {
 }
 
 async function fetchByGenre(platformIds, genre, typeFilter, sortBy) {
-  var providerIds = platformIds.map(function(id) {
+  var noSelection = platformIds.length === 0;
+  var effectiveIds = noSelection ? PLATFORMS.map(function(p){ return p.id; }) : platformIds;
+  var providerIds = effectiveIds.map(function(id) {
     var p = getPlatform(id); return p ? p.tmdb : null;
   }).filter(Boolean).join("|");
 
@@ -187,20 +189,21 @@ async function fetchByGenre(platformIds, genre, typeFilter, sortBy) {
 
   var results = await Promise.all(calls);
   var allItems = results[0].concat(results[1]);
-  // Enriquece com plataformas reais via /watch/providers
-  var enriched = await enrichWithProviders(allItems, platformIds);
+  var enriched = await enrichWithProviders(allItems, effectiveIds);
   return enriched;
 }
 
 async function fetchTrending(platformIds) {
-  var providerIds = platformIds.map(function(id) {
+  var noSelection = platformIds.length === 0;
+  var effectiveIds = noSelection ? PLATFORMS.map(function(p){ return p.id; }) : platformIds;
+  var providerIds = effectiveIds.map(function(id) {
     var p = getPlatform(id); return p ? p.tmdb : null;
   }).filter(Boolean).join("|");
   var d = await tmdb("/3/discover/movie", { with_watch_providers: providerIds, watch_region: "BR", sort_by: "popularity.desc", "vote_count.gte": 50, page: 1 });
   var items = (d.results || []).slice(0, 12).map(function(item) {
-    return mapItem(Object.assign({}, item, { media_type: "movie" }), platformIds[0]);
+    return mapItem(Object.assign({}, item, { media_type: "movie" }), effectiveIds[0]);
   });
-  var enriched = await enrichWithProviders(items, platformIds);
+  var enriched = await enrichWithProviders(items, effectiveIds);
   return enriched.slice(0, 8);
 }
 
