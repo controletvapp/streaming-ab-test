@@ -296,10 +296,16 @@ function Onboarding(props) {
             );
           })}
         </div>
-        <button onClick={function(){ props.onStart(sel); }} disabled={sel.length===0} style={{width:"100%",padding:14,border:"none",borderRadius:10,fontSize:13,fontWeight:800,fontFamily:"inherit",transition:"all .2s",cursor:sel.length?"pointer":"not-allowed",background:sel.length?RED:"#161616",color:sel.length?"#fff":"#333"}}>
+        <button onClick={function(){
+          sel.forEach(function(id){
+            var pl=getPlatform(id);
+            if(pl) gtag('event','select_platform',{platform_name:pl.name});
+          });
+          props.onStart(sel);
+        }} disabled={sel.length===0} style={{width:"100%",padding:14,border:"none",borderRadius:10,fontSize:13,fontWeight:800,fontFamily:"inherit",transition:"all .2s",cursor:sel.length?"pointer":"not-allowed",background:sel.length?RED:"#161616",color:sel.length?"#fff":"#333"}}>
           {sel.length ? "Ver meu catálogo →" : "Ver meu catálogo →"}
         </button>
-        <button onClick={function(){ props.onStart([]); }} style={{width:"100%",padding:12,border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,fontSize:12,fontWeight:600,fontFamily:"inherit",cursor:"pointer",background:"transparent",color:"#444",transition:"all .2s",marginTop:8}}>
+        <button onClick={function(){ gtag('event','skip_onboarding'); props.onStart([]); }} style={{width:"100%",padding:12,border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,fontSize:12,fontWeight:600,fontFamily:"inherit",cursor:"pointer",background:"transparent",color:"#444",transition:"all .2s",marginTop:8}}>
           Não assino nenhuma — só quero explorar
         </button>
       </div>
@@ -421,6 +427,7 @@ function SearchTab(props) {
 
   async function doSearch(e) {
     e.preventDefault(); if(!q.trim()) return;
+    gtag('event','search',{search_term:q.trim()});
     setLoading(true); setRes(null); setErr("");
     try { var data=await searchTitle(q.trim()); setRes(data); }
     catch(ex) { setErr("Erro ao buscar. Tente novamente."); }
