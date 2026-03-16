@@ -4,7 +4,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StreamFinder</title>
+<title>catálogo.stream</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -273,7 +273,7 @@ function Onboarding(props) {
           Acesso Beta
         </div>
         <h1 style={{fontFamily:"'DM Serif Display',serif",fontSize:"clamp(40px,8vw,76px)",fontWeight:400,lineHeight:.95,letterSpacing:-2,marginBottom:14}}>
-          Stream<span style={{color:BLUE,fontStyle:"italic"}}>Finder</span>
+          catálogo<span style={{color:TEAL}}>.stream</span>
         </h1>
         <p style={{color:"#888",fontSize:14,maxWidth:340,lineHeight:1.65,margin:"0 auto"}}>
           Encontre onde assistir qualquer título — e descubra quando você já tem acesso nas plataformas que já paga.
@@ -554,7 +554,7 @@ function App() {
       <div style={{position:"fixed",inset:0,backgroundImage:"radial-gradient(circle,rgba(0,0,0,0.04) 1px,transparent 1px)",backgroundSize:"24px 24px",pointerEvents:"none",zIndex:0}}/>
       <div style={{position:"relative",zIndex:1,maxWidth:640,margin:"0 auto",padding:"0 16px 80px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 0 14px",borderBottom:"1.5px solid rgba(0,0,0,0.06)"}}>
-          <div style={{fontFamily:"'DM Serif Display',serif",fontSize:18,letterSpacing:-.5}}>Stream<span style={{color:BLUE,fontStyle:"italic"}}>Finder</span></div>
+          <div onClick={function(){ setStep("onboarding"); }} style={{fontFamily:"'DM Serif Display',serif",fontSize:18,letterSpacing:-.5,cursor:"pointer"}}>catálogo<span style={{color:TEAL}}>.stream</span></div>
           <div style={{display:"flex",alignItems:"center",gap:5}}>
             {sel.map(function(id){ return React.createElement(Dot,{key:id,id:id,size:23}); })}
             <button onClick={function(){ setStep("onboarding"); }} style={{background:"none",border:"1.5px solid rgba(0,0,0,0.08)",borderRadius:7,color:"#bbb",fontSize:10,padding:"4px 8px",cursor:"pointer",fontFamily:"inherit",marginLeft:4}}>editar</button>
