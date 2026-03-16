@@ -4,24 +4,22 @@ Teste A/B entre dois nomes/layouts para um guia de streaming brasileiro.
 
 ## Estrutura
 
-```
 streaming-ab-test/
-├── controle-tv/
-│   ├── index.html          ← site controle.tv (dark mode)
-│   └── functions/
-│       └── tmdb.js         ← proxy da API do TMDb
-├── streamfinder/
-│   ├── index.html          ← site StreamFinder (light mode)
-│   └── functions/
-│       └── tmdb.js         ← proxy da API do TMDb
+├── vou.buscar/
+│   ├── index.html        ← site vou.buscar (dark mode)
+│   └── functions/api/
+│       └── tmdb.js       ← proxy da API do TMDb
+├── catalogo.stream/
+│   ├── index.html        ← site catálogo.stream (light mode)
+│   └── functions/api/
+│       └── tmdb.js       ← proxy da API do TMDb
 └── README.md
-```
 
 ## Como funciona
 
-Cada pasta é um projeto separado no Cloudflare Pages.
-Quando você editar qualquer arquivo e salvar no GitHub,
-o Cloudflare detecta a mudança e faz o deploy automaticamente.
+Cada pasta é um projeto independente no Cloudflare Pages.
+Deploy automático a cada commit no `main`.
+A chave da API do TMDb fica como secret no Cloudflare — nunca exposta no frontend.
 
 ## Variáveis de ambiente (Cloudflare)
 
