@@ -4,7 +4,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>controle.tv</title>
+<title>vou.buscar</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -275,7 +275,7 @@ function Onboarding(props) {
           Acesso Beta
         </div>
         <h1 style={{fontSize:"clamp(44px,9vw,82px)",fontWeight:900,lineHeight:.9,letterSpacing:-2.5,marginBottom:14}}>
-          controle<span style={{color:RED}}>.tv</span>
+          vou<span style={{color:RED}}>.buscar</span>
         </h1>
         <p style={{color:"#444",fontSize:14,maxWidth:320,lineHeight:1.65,margin:"0 auto"}}>
           Você no comando. Descubra o que já pode assistir nas plataformas que já paga.
@@ -556,7 +556,7 @@ function App() {
       <div style={{position:"fixed",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.01) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.01) 1px,transparent 1px)",backgroundSize:"54px 54px",pointerEvents:"none",zIndex:0}}/>
       <div style={{position:"relative",zIndex:1,maxWidth:640,margin:"0 auto",padding:"0 16px 80px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 0 14px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
-          <div style={{fontSize:17,fontWeight:900,letterSpacing:-.5}}>controle<span style={{color:RED}}>.tv</span></div>
+          <div onClick={function(){ setStep("onboarding"); }} style={{fontSize:17,fontWeight:900,letterSpacing:-.5,cursor:"pointer"}}>vou<span style={{color:RED}}>.buscar</span></div>
           <div style={{display:"flex",alignItems:"center",gap:5}}>
             {sel.map(function(id){ return React.createElement(Dot,{key:id,id:id,size:23}); })}
             <button onClick={function(){ setStep("onboarding"); }} style={{background:"none",border:"1px solid rgba(255,255,255,0.07)",borderRadius:7,color:"#444",fontSize:10,padding:"4px 8px",cursor:"pointer",fontFamily:"inherit",marginLeft:4}}>editar</button>
