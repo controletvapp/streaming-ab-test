@@ -3,7 +3,7 @@
 Teste A/B entre dois nomes/layouts para um guia de streaming brasileiro.
 
 ## Estrutura
-
+```
 streaming-ab-test/
 ├── vou.buscar/
 │   ├── index.html        ← site vou.buscar (dark mode)
@@ -14,6 +14,7 @@ streaming-ab-test/
 │   └── functions/api/
 │       └── tmdb.js       ← proxy da API do TMDb
 └── README.md
+```
 
 ## Como funciona
 
