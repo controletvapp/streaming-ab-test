@@ -27,7 +27,7 @@ export async function onRequest(context) {
     return new Response("Invalid email", { status: 400 });
   }
 
-  const PUBLICATION_ID = "pub_11d7cb27-dd26-472a-beb2-419f3e7d147b";
+  const PUBLICATION_ID = "pub_b35d114e-c041-4832-8c44-78f22bbe71b8";
 
   const resp = await fetch(
     `https://api.beehiiv.com/v2/publications/${PUBLICATION_ID}/subscriptions`,
@@ -41,7 +41,7 @@ export async function onRequest(context) {
         email,
         reactivate_existing: false,
         send_welcome_email: false,
-        utm_source: "catalogo.stream",
+        utm_source: "voubuscar.com",
         utm_medium: "onboarding",
       }),
     }
