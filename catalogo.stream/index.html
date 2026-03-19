@@ -262,7 +262,11 @@ function Spinner(props) {
 
 function Onboarding(props) {
   var _s = useState([]); var sel = _s[0]; var setSel = _s[1];
+  var _em = useState(""); var email = _em[0]; var setEmail = _em[1];
   function toggle(id) { setSel(function(prev) { return prev.includes(id) ? prev.filter(function(x){ return x!==id; }) : prev.concat(id); }); }
+  async function subscribeEmail(em) {
+    try { await fetch("/beehiiv", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: em }) }); } catch(e) {}
+  }
   return (
     <div style={{minHeight:"100vh",background:"#F8F7F4",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 20px",gap:28,position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(circle,rgba(0,0,0,0.06) 1px,transparent 1px)",backgroundSize:"26px 26px",pointerEvents:"none"}}/>
@@ -294,16 +298,25 @@ function Onboarding(props) {
             );
           })}
         </div>
-        <button onClick={function(){
+        <button onClick={async function(){
           sel.forEach(function(id){
             var pl=getPlatform(id);
             if(pl) gtag('event','select_platform',{platform_name:pl.name});
           });
           try { localStorage.setItem("catalogo_platforms", JSON.stringify(sel)); } catch(e) {}
+          if (email.trim()) await subscribeEmail(email.trim());
           props.onStart(sel);
         }} disabled={sel.length===0} style={{width:"100%",padding:14,border:"none",borderRadius:12,fontSize:13,fontWeight:600,fontFamily:"inherit",transition:"all .2s",cursor:sel.length?"pointer":"not-allowed",background:sel.length?"#0F0F0F":"#f0f0f0",color:sel.length?"#fff":"#bbb",boxShadow:sel.length?"0 4px 14px rgba(0,0,0,0.15)":"none"}}>
           {sel.length ? "Ver meu catálogo →" : "Ver meu catálogo →"}
         </button>
+        <input
+          type="email"
+          value={email}
+          onChange={function(e){ setEmail(e.target.value); }}
+          placeholder="seu@email.com — novidades em primeira mão"
+          style={{width:"100%",padding:"11px 14px",marginTop:10,border:"1.5px solid rgba(0,0,0,0.09)",borderRadius:12,fontSize:13,fontFamily:"inherit",outline:"none",boxSizing:"border-box",background:"#fafafa",color:"#333"}}
+        />
+        <p style={{fontSize:11,color:"#bbb",textAlign:"center",marginTop:4,marginBottom:0}}>Opcional. Sem spam.</p>
         <button onClick={function(){ gtag('event','skip_onboarding'); props.onStart([]); }} style={{width:"100%",padding:12,border:"1.5px solid rgba(0,0,0,0.10)",borderRadius:12,fontSize:12,fontWeight:500,fontFamily:"inherit",cursor:"pointer",background:"transparent",color:"#aaa",transition:"all .2s",marginTop:8}}>
           Não assino nenhuma — só quero explorar
         </button>
