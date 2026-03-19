@@ -301,6 +301,7 @@ function Onboarding(props) {
             var pl=getPlatform(id);
             if(pl) gtag('event','select_platform',{platform_name:pl.name});
           });
+          try { localStorage.setItem("voubuscar_platforms", JSON.stringify(sel)); } catch(e) {}
           props.onStart(sel);
         }} disabled={sel.length===0} style={{width:"100%",padding:14,border:"none",borderRadius:10,fontSize:13,fontWeight:800,fontFamily:"inherit",transition:"all .2s",cursor:sel.length?"pointer":"not-allowed",background:sel.length?RED:"#161616",color:sel.length?"#fff":"#333"}}>
           {sel.length ? "Ver meu catálogo →" : "Ver meu catálogo →"}
@@ -429,7 +430,15 @@ function SearchTab(props) {
     e.preventDefault(); if(!q.trim()) return;
     gtag('event','search',{search_term:q.trim()});
     setLoading(true); setRes(null); setErr("");
-    try { var data=await searchTitle(q.trim()); setRes(data); }
+    try {
+      var data=await searchTitle(q.trim());
+      if (!data.found) {
+        gtag('event','search_not_found',{search_term:q.trim()});
+      } else if (data.platforms && data.platforms.length===0) {
+        gtag('event','search_no_platform',{search_term:q.trim(),title:data.title});
+      }
+      setRes(data);
+    }
     catch(ex) { setErr("Erro ao buscar. Tente novamente."); }
     finally { setLoading(false); }
   }
@@ -542,8 +551,9 @@ function Modal(props) {
 }
 
 function App() {
-  var _step=useState("onboarding"); var step=_step[0]; var setStep=_step[1];
-  var _sel=useState([]); var sel=_sel[0]; var setSel=_sel[1];
+  var _saved = (function(){ try { var s=localStorage.getItem("voubuscar_platforms"); return s?JSON.parse(s):null; } catch(e){ return null; } })();
+  var _step=useState(_saved?"app":"onboarding"); var step=_step[0]; var setStep=_step[1];
+  var _sel=useState(_saved||[]); var sel=_sel[0]; var setSel=_sel[1];
   var _tab=useState("catalog"); var tab=_tab[0]; var setTab=_tab[1];
   var _stars=useState({}); var stars=_stars[0]; var setStars=_stars[1];
   var _modal=useState(null); var modal=_modal[0]; var setModal=_modal[1];
