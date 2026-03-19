@@ -428,7 +428,15 @@ function SearchTab(props) {
     e.preventDefault(); if(!q.trim()) return;
     gtag('event','search',{search_term:q.trim()});
     setLoading(true); setRes(null); setErr("");
-    try { var data=await searchTitle(q.trim()); setRes(data); }
+    try {
+      var data=await searchTitle(q.trim());
+      if (!data.found) {
+        gtag('event','search_not_found',{search_term:q.trim()});
+      } else if (data.platforms && data.platforms.length===0) {
+        gtag('event','search_no_platform',{search_term:q.trim(),title:data.title});
+      }
+      setRes(data);
+    }
     catch(ex) { setErr("Erro ao buscar. Tente novamente."); }
     finally { setLoading(false); }
   }
