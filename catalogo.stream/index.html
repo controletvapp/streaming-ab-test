@@ -299,6 +299,7 @@ function Onboarding(props) {
             var pl=getPlatform(id);
             if(pl) gtag('event','select_platform',{platform_name:pl.name});
           });
+          try { localStorage.setItem("catalogo_platforms", JSON.stringify(sel)); } catch(e) {}
           props.onStart(sel);
         }} disabled={sel.length===0} style={{width:"100%",padding:14,border:"none",borderRadius:12,fontSize:13,fontWeight:600,fontFamily:"inherit",transition:"all .2s",cursor:sel.length?"pointer":"not-allowed",background:sel.length?"#0F0F0F":"#f0f0f0",color:sel.length?"#fff":"#bbb",boxShadow:sel.length?"0 4px 14px rgba(0,0,0,0.15)":"none"}}>
           {sel.length ? "Ver meu catálogo →" : "Ver meu catálogo →"}
@@ -540,8 +541,9 @@ function Modal(props) {
 }
 
 function App() {
-  var _step=useState("onboarding"); var step=_step[0]; var setStep=_step[1];
-  var _sel=useState([]); var sel=_sel[0]; var setSel=_sel[1];
+  var _saved = (function(){ try { var s=localStorage.getItem("catalogo_platforms"); return s?JSON.parse(s):null; } catch(e){ return null; } })();
+  var _step=useState(_saved?"app":"onboarding"); var step=_step[0]; var setStep=_step[1];
+  var _sel=useState(_saved||[]); var sel=_sel[0]; var setSel=_sel[1];
   var _tab=useState("catalog"); var tab=_tab[0]; var setTab=_tab[1];
   var _stars=useState({}); var stars=_stars[0]; var setStars=_stars[1];
   var _modal=useState(null); var modal=_modal[0]; var setModal=_modal[1];
