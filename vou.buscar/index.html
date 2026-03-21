@@ -539,7 +539,7 @@ function SearchTab(props) {
                     </div>;
                   })}
                 </div>}
-                {hasSelection&&mine.length===0&&(
+                {hasSelection&&mine.length===0&&others.length>0&&(
                   <div style={{marginBottom:12,borderRadius:11,border:"1px solid rgba(255,255,255,0.05)",overflow:"hidden"}}>
                     <div style={{textAlign:"center",padding:"18px 18px 14px",background:"rgba(255,255,255,0.02)"}}>
                       <p style={{fontSize:22,marginBottom:8}}>😅</p>
