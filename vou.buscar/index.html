@@ -435,14 +435,31 @@ function SearchTab(props) {
   var _r=useState(null); var res=_r[0]; var setRes=_r[1];
   var _l=useState(false); var loading=_l[0]; var setLoading=_l[1];
   var _e=useState(""); var err=_e[0]; var setErr=_e[1];
+  var _ce=useState(""); var captureEmail=_ce[0]; var setCaptureEmail=_ce[1];
+  var _ec=useState(false); var emailCaptured=_ec[0]; var setEmailCaptured=_ec[1];
   var sel=props.sel||[];
   var hasSelection=sel.length>0;
   var knownIds=PLATFORMS.map(function(p){ return p.id; });
+
+  async function handleCaptureEmail(moment) {
+    if (!captureEmail.trim()) return;
+    gtag('event','email_captured',{capture_moment:moment});
+    try {
+      await fetch('/beehiiv', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:captureEmail.trim()})
+      });
+    } catch(e) {}
+    setEmailCaptured(true);
+    setCaptureEmail('');
+  }
 
   async function doSearch(e) {
     e.preventDefault(); if(!q.trim()) return;
     gtag('event','search',{search_term:q.trim()});
     setLoading(true); setRes(null); setErr("");
+    setEmailCaptured(false); setCaptureEmail('');
     try {
       var data=await searchTitle(q.trim());
       if (!data.found) {
