@@ -539,7 +539,32 @@ function SearchTab(props) {
                     </div>;
                   })}
                 </div>}
-                {hasSelection&&mine.length===0&&<div style={{textAlign:"center",padding:18,marginBottom:12,background:"rgba(255,255,255,0.02)",borderRadius:11,border:"1px solid rgba(255,255,255,0.05)"}}><p style={{color:"#555"}}>😅 Não está em nenhuma das suas plataformas.</p></div>}
+                {hasSelection&&mine.length===0&&(
+                  <div style={{marginBottom:12,borderRadius:11,border:"1px solid rgba(255,255,255,0.05)",overflow:"hidden"}}>
+                    <div style={{textAlign:"center",padding:"18px 18px 14px",background:"rgba(255,255,255,0.02)"}}>
+                      <p style={{fontSize:22,marginBottom:8}}>😅</p>
+                      <p style={{color:"#888",fontWeight:600,fontSize:13}}>Disponível no Brasil, mas não nas suas plataformas.</p>
+                      <p style={{color:"#444",fontSize:12,marginTop:4}}>Quer saber quando chegar em uma que você já assina?</p>
+                    </div>
+                    {!emailCaptured&&(
+                      <div style={{padding:"12px 14px 14px",background:"rgba(255,255,255,0.02)",borderTop:"1px solid rgba(255,255,255,0.05)"}}>
+                        <div style={{display:"flex",gap:8}}>
+                          <input
+                            type="email"
+                            value={captureEmail}
+                            onChange={function(e){ setCaptureEmail(e.target.value); }}
+                            placeholder="seu@email.com"
+                            style={{flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:8,padding:"9px 12px",fontSize:13,fontFamily:"inherit",outline:"none",color:"#ccc"}}
+                          />
+                          <button onClick={function(){ handleCaptureEmail('post_frustration'); }} style={{background:RED,border:"none",borderRadius:8,padding:"9px 14px",fontSize:12,fontWeight:700,fontFamily:"inherit",color:"#fff",cursor:"pointer",whiteSpace:"nowrap"}}>Me avisa</button>
+                        </div>
+                      </div>
+                    )}
+                    {emailCaptured&&(
+                      <p style={{fontSize:12,color:"#00E676",textAlign:"center",padding:"12px 14px",background:"rgba(0,230,118,0.04)",borderTop:"1px solid rgba(255,255,255,0.05)"}}>Anotado! Te avisamos se chegar nas suas plataformas. ✓</p>
+                    )}
+                  </div>
+                )}
                 {others.length>0&&<div>
                   <p style={{fontSize:9,color:"#2a2a2a",textTransform:"uppercase",letterSpacing:1.5,marginBottom:8,fontWeight:700}}>{hasSelection?"🌐 Disponível também em":"📺 Onde assistir"}</p>
                   {others.map(function(p,i){
