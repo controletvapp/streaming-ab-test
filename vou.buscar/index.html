@@ -502,6 +502,25 @@ function SearchTab(props) {
                   <div><p style={{color:"#00E676",fontWeight:700,fontSize:13}}>Você já tem acesso!</p><p style={{color:"#00E676",opacity:.45,fontSize:11}}>Incluído em uma das suas plataformas</p></div>
                 </div>
               )}
+              {hasSelection&&res.platforms&&res.platforms.some(function(p){ return sel.includes(p.id)&&p.access==="incluido"; })&&!emailCaptured&&(
+                <div style={{marginTop:12,padding:"14px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:11}}>
+                  <p style={{fontSize:12,color:"#888",marginBottom:8}}>Quer ser avisado quando novos títulos chegarem nas suas plataformas?</p>
+                  <div style={{display:"flex",gap:8}}>
+                    <input
+                      type="email"
+                      value={captureEmail}
+                      onChange={function(e){ setCaptureEmail(e.target.value); }}
+                      placeholder="seu@email.com"
+                      style={{flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:8,padding:"9px 12px",fontSize:13,fontFamily:"inherit",outline:"none",color:"#ccc"}}
+                    />
+                    <button onClick={function(){ handleCaptureEmail('post_success'); }} style={{background:RED,border:"none",borderRadius:8,padding:"9px 14px",fontSize:12,fontWeight:700,fontFamily:"inherit",color:"#fff",cursor:"pointer",whiteSpace:"nowrap"}}>Avisar</button>
+                  </div>
+                  <p style={{fontSize:11,color:"#333",marginTop:5}}>Só avisamos quando valer a pena. Sem spam.</p>
+                </div>
+              )}
+              {hasSelection&&res.platforms&&res.platforms.some(function(p){ return sel.includes(p.id)&&p.access==="incluido"; })&&emailCaptured&&(
+                <p style={{fontSize:12,color:"#00E676",textAlign:"center",marginTop:12,padding:"10px",background:"rgba(0,230,118,0.06)",borderRadius:8}}>Anotado! Você será o primeiro a saber. ✓</p>
+              )}
             </div>
           </div>
           {(function(){
