@@ -433,14 +433,31 @@ function SearchTab(props) {
   var _r=useState(null); var res=_r[0]; var setRes=_r[1];
   var _l=useState(false); var loading=_l[0]; var setLoading=_l[1];
   var _e=useState(""); var err=_e[0]; var setErr=_e[1];
+  var _ce=useState(""); var captureEmail=_ce[0]; var setCaptureEmail=_ce[1];
+  var _ec=useState(false); var emailCaptured=_ec[0]; var setEmailCaptured=_ec[1];
   var sel=props.sel||[];
   var hasSelection=sel.length>0;
   var knownIds=PLATFORMS.map(function(p){ return p.id; });
+
+  async function handleCaptureEmail(moment) {
+    if (!captureEmail.trim()) return;
+    gtag('event','email_captured',{capture_moment:moment});
+    try {
+      await fetch('/beehiiv', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:captureEmail.trim()})
+      });
+    } catch(e) {}
+    setEmailCaptured(true);
+    setCaptureEmail('');
+  }
 
   async function doSearch(e) {
     e.preventDefault(); if(!q.trim()) return;
     gtag('event','search',{search_term:q.trim()});
     setLoading(true); setRes(null); setErr("");
+    setEmailCaptured(false); setCaptureEmail('');
     try {
       var data=await searchTitle(q.trim());
       if (!data.found) {
@@ -483,6 +500,25 @@ function SearchTab(props) {
                   <div><p style={{color:TEAL,fontWeight:600,fontSize:13}}>Você já tem acesso!</p><p style={{color:TEAL,opacity:.55,fontSize:11}}>Incluído em uma das suas plataformas</p></div>
                 </div>
               )}
+              {hasSelection&&res.platforms&&res.platforms.some(function(p){ return sel.includes(p.id)&&p.access==="incluido"; })&&!emailCaptured&&(
+                <div style={{marginTop:12,padding:"14px",background:"#f9f9f9",border:"1.5px solid rgba(0,0,0,0.07)",borderRadius:12}}>
+                  <p style={{fontSize:12,color:"#888",marginBottom:8}}>Quer ser avisado quando novos títulos chegarem nas suas plataformas?</p>
+                  <div style={{display:"flex",gap:8}}>
+                    <input
+                      type="email"
+                      value={captureEmail}
+                      onChange={function(e){ setCaptureEmail(e.target.value); }}
+                      placeholder="seu@email.com"
+                      style={{flex:1,background:"#fff",border:"1.5px solid rgba(0,0,0,0.09)",borderRadius:8,padding:"9px 12px",fontSize:13,fontFamily:"inherit",outline:"none",color:"#333"}}
+                    />
+                    <button onClick={function(){ handleCaptureEmail('post_success'); }} style={{background:TEAL,border:"none",borderRadius:8,padding:"9px 14px",fontSize:12,fontWeight:700,fontFamily:"inherit",color:"#fff",cursor:"pointer",whiteSpace:"nowrap"}}>Avisar</button>
+                  </div>
+                  <p style={{fontSize:11,color:"#bbb",marginTop:5}}>Só avisamos quando valer a pena. Sem spam.</p>
+                </div>
+              )}
+              {hasSelection&&res.platforms&&res.platforms.some(function(p){ return sel.includes(p.id)&&p.access==="incluido"; })&&emailCaptured&&(
+                <p style={{fontSize:12,color:TEAL,textAlign:"center",marginTop:12,padding:"10px",background:TEAL+"08",borderRadius:8}}>Anotado! Você será o primeiro a saber. ✓</p>
+              )}
             </div>
           </div>
           {(function(){
@@ -501,7 +537,32 @@ function SearchTab(props) {
                     </div>;
                   })}
                 </div>}
-                {hasSelection&&mine.length===0&&<div style={{textAlign:"center",padding:18,marginBottom:12,background:"#fff",borderRadius:12,border:"1.5px solid rgba(0,0,0,0.07)"}}><p style={{color:"#aaa"}}>😅 Não está em nenhuma das suas plataformas.</p></div>}
+                {hasSelection&&mine.length===0&&others.length>0&&(
+                  <div style={{marginBottom:12,borderRadius:12,border:"1.5px solid rgba(0,0,0,0.07)",overflow:"hidden"}}>
+                    <div style={{textAlign:"center",padding:"18px 18px 14px",background:"#fff"}}>
+                      <p style={{fontSize:22,marginBottom:8}}>😅</p>
+                      <p style={{color:"#555",fontWeight:600,fontSize:13}}>Disponível no Brasil, mas não nas suas plataformas.</p>
+                      <p style={{color:"#aaa",fontSize:12,marginTop:4}}>Quer saber quando chegar em uma que você já assina?</p>
+                    </div>
+                    {!emailCaptured&&(
+                      <div style={{padding:"12px 14px 14px",background:"#fafafa",borderTop:"1.5px solid rgba(0,0,0,0.05)"}}>
+                        <div style={{display:"flex",gap:8}}>
+                          <input
+                            type="email"
+                            value={captureEmail}
+                            onChange={function(e){ setCaptureEmail(e.target.value); }}
+                            placeholder="seu@email.com"
+                            style={{flex:1,background:"#fff",border:"1.5px solid rgba(0,0,0,0.09)",borderRadius:8,padding:"9px 12px",fontSize:13,fontFamily:"inherit",outline:"none",color:"#333"}}
+                          />
+                          <button onClick={function(){ handleCaptureEmail('post_frustration'); }} style={{background:TEAL,border:"none",borderRadius:8,padding:"9px 14px",fontSize:12,fontWeight:700,fontFamily:"inherit",color:"#fff",cursor:"pointer",whiteSpace:"nowrap"}}>Me avisa</button>
+                        </div>
+                      </div>
+                    )}
+                    {emailCaptured&&(
+                      <p style={{fontSize:12,color:TEAL,textAlign:"center",padding:"12px 14px",background:TEAL+"08",borderTop:"1.5px solid rgba(0,0,0,0.05)"}}>Anotado! Te avisamos se chegar nas suas plataformas. ✓</p>
+                    )}
+                  </div>
+                )}
                 {others.length>0&&<div>
                   <p style={{fontSize:9,color:"#ccc",textTransform:"uppercase",letterSpacing:1.5,marginBottom:8,fontWeight:600}}>{hasSelection?"🌐 Disponível também em":"📺 Onde assistir"}</p>
                   {others.map(function(p,i){
@@ -513,7 +574,32 @@ function SearchTab(props) {
                     </div>;
                   })}
                 </div>}
-                {res.platforms&&res.platforms.length===0&&<div style={{textAlign:"center",padding:18,background:"#fff",borderRadius:12,border:"1.5px solid rgba(0,0,0,0.07)"}}><p style={{color:"#aaa"}}>🌐 Não encontrado em nenhuma plataforma no Brasil.</p></div>}
+                {res.platforms&&res.platforms.length===0&&(
+                  <div style={{borderRadius:12,border:"1.5px solid rgba(0,0,0,0.07)",overflow:"hidden"}}>
+                    <div style={{textAlign:"center",padding:"18px 18px 14px",background:"#fff"}}>
+                      <p style={{fontSize:22,marginBottom:8}}>🌐</p>
+                      <p style={{color:"#555",fontWeight:600,fontSize:13}}>Ainda não chegou no Brasil.</p>
+                      <p style={{color:"#aaa",fontSize:12,marginTop:4}}>Quer ser o primeiro a saber quando chegar?</p>
+                    </div>
+                    {!emailCaptured&&(
+                      <div style={{padding:"12px 14px 14px",background:"#fafafa",borderTop:"1.5px solid rgba(0,0,0,0.05)"}}>
+                        <div style={{display:"flex",gap:8}}>
+                          <input
+                            type="email"
+                            value={captureEmail}
+                            onChange={function(e){ setCaptureEmail(e.target.value); }}
+                            placeholder="seu@email.com"
+                            style={{flex:1,background:"#fff",border:"1.5px solid rgba(0,0,0,0.09)",borderRadius:8,padding:"9px 12px",fontSize:13,fontFamily:"inherit",outline:"none",color:"#333"}}
+                          />
+                          <button onClick={function(){ handleCaptureEmail('post_frustration'); }} style={{background:TEAL,border:"none",borderRadius:8,padding:"9px 14px",fontSize:12,fontWeight:700,fontFamily:"inherit",color:"#fff",cursor:"pointer",whiteSpace:"nowrap"}}>Me avisa</button>
+                        </div>
+                      </div>
+                    )}
+                    {emailCaptured&&(
+                      <p style={{fontSize:12,color:TEAL,textAlign:"center",padding:"12px 14px",background:TEAL+"08",borderTop:"1.5px solid rgba(0,0,0,0.05)"}}>Anotado! Te avisamos quando chegar. ✓</p>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })()}
