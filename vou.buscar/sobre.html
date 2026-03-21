@@ -7,7 +7,17 @@
 <meta name="description" content="Para de abrir Netflix, Prime e Disney+ um por um. VouBuscar mostra seu catálogo completo em segundos.">
 <meta property="og:title" content="vou.buscar — Você passa mais tempo escolhendo do que assistindo">
 <meta property="og:description" content="Para de abrir Netflix, Prime e Disney+ um por um. VouBuscar mostra seu catálogo completo em segundos.">
-<meta property="og:url" content="https://voubuscar.com/sobre">
+<meta property="og:url" content="https://sobre.voubuscar.com">
+<meta property="og:image" content="https://sobre.voubuscar.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://sobre.voubuscar.com/og.png">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5JT3DBY0SQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5JT3DBY0SQ');
+</script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   :root{
@@ -294,12 +304,12 @@
       Busca o título uma vez e descobre na hora se já está nas plataformas que você paga.
     </p>
     <div class="cta-block">
-      <a href="https://voubuscar.com" class="btn-main">
+      <a href="https://voubuscar.com" class="btn-main" onclick="gtag('event','landing_cta_click',{destination:'voubuscar'})">
         Montar meu catálogo agora →
       </a>
       <div class="cta-sub">
         <span>Grátis. Sem cadastro obrigatório.</span>
-        <a href="https://catalogo.stream">ou testar o Catálogo.stream</a>
+        <a href="https://catalogo.stream" onclick="gtag('event','landing_cta_click',{destination:'catalogo'})">ou testar o Catálogo.stream</a>
       </div>
     </div>
   </section>
@@ -386,6 +396,8 @@ async function submitEmail() {
   btn.disabled = true;
   btn.textContent = '...';
 
+  gtag('event', 'email_captured', { capture_moment: 'landing' });
+
   try {
     await fetch('/beehiiv', {
       method: 'POST',
@@ -396,4 +408,9 @@ async function submitEmail() {
 
   input.style.display = 'none';
   btn.style.display = 'none';
-  document.querySelector('.capture-sub').style.disp
+  document.querySelector('.capture-sub').style.display = 'none';
+  confirm.classList.add('show');
+}
+</script>
+</body>
+</html>
